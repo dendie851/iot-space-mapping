@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt_radar_broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  radar-mapper:
+    build: .
+    container_name: python_radar_mapper
+    environment:
+      - DISPLAY=host.docker.internal:0
+    volumes:
+      - .:/app
+    depends_on:
+      - mqtt-broker
+    restart: "no"
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
