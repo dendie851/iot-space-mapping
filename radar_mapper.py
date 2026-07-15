@@ -25,7 +25,7 @@ fig = plt.figure(figsize=(10, 9), facecolor='#0a0a0a')
 ax = fig.add_subplot(111, polar=True, facecolor='#0d1117')
 
 ax.set_ylim(0, max_distance)
-ax.set_title("RADAR SPACE MAPPING", color='#00ff88', fontsize=16, pad=25,
+ax.set_title("RADAR", color='#00ff88', fontsize=16, pad=25,
              fontweight='bold', fontfamily='monospace')
 
 # --- KUSTOMISASI GRID & RADIUS ---
