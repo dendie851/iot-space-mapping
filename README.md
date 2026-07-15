@@ -1,6 +1,6 @@
 # IoT Space Mapping and Radar Visualization
 
-A smart space-mapping and obstacle-detection system utilizing an ESP32, an HC-SR04 ultrasonic sensor, a servo motor, MQTT communication, and interactive Python/Pygame/Matplotlib visualizations.
+A smart for object detection and obstacle-detection system utilizing an ESP32, an HC-SR04 ultrasonic sensor, a servo motor, MQTT communication, and interactive Python/Pygame/Matplotlib visualizations.
 
 ---
 
