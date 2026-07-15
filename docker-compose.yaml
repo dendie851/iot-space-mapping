@@ -12,16 +12,21 @@ services:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     restart: unless-stopped
 
+  # Service radar-mapper (polar radar) — point cloud tanpa garis penghubung
   radar-mapper:
     build: .
-    container_name: python_radar_mapper
+    container_name: python_radar
     environment:
       - DISPLAY=host.docker.internal:0
+      - MQTT_BROKER=mqtt-broker
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=esp32/radar
     volumes:
       - .:/app
     depends_on:
       - mqtt-broker
     restart: "no"
+    command: ["python", "radar_mapper.py"]
 
 volumes:
   mosquitto_data:
