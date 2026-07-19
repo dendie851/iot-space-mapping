@@ -2,6 +2,52 @@
 #include <PubSubClient.h>
 #include <ESP32Servo.h>
 
+// ============================================================
+// HARDWARE SETUP & CONFIGURATION
+// ============================================================
+
+// --- PIN Hardware (Dipindahkan ke atas agar tidak error scope) --
+// HC-SR04 Ultrasonic Sensor connections
+const int PIN_TRIG    = 2;   // D2 (GPIO 2)  ----> Hubungkan ke HC-SR04 Trig
+const int PIN_ECHO    = 4;   // D4 (GPIO 4)  ----> Hubungkan ke HC-SR04 Echo
+
+// Servo Motor (Dynamo Servo) connection
+const int PIN_SERVO   = 15;  // D15 (GPIO 15) ----> Hubungkan ke Sinyal Servo
+
+// PIN LED Indikator
+const int PIN_LED_BUILTIN = 13; // GPIO 13
+
+// --- WiFi Configuration ---
+const char* ssid         = "PutriTunggal";
+const char* password     = "uu311009";
+
+// --- MQTT Configuration ---
+const char* mqtt_server  = "192.168.100.35"; // IP komputer/MQTT broker
+const int   mqtt_port    = 1883;
+const char* mqtt_topic   = "esp32/radar";
+const char* mqtt_client_id = "ESP32RadarClient";
+
+// --- Topik Status (Telemetry) ---
+const char* mqtt_topic_status  = "esp32/status";
+const char* mqtt_topic_cmd     = "esp32/cmd";
+
+// ============================================================
+// WIRING DIAGRAM REFERENCE
+// ============================================================
+/*
+ * HC-SR04 Ultrasonic Sensor:
+ *    ESP32 GPIO 2  (D2)  ----> HC-SR04 Trig
+ *    ESP32 GPIO 4  (D4)  ----> HC-SR04 Echo
+ *    ESP32 3V3/5V        ----> HC-SR04 VCC
+ *    ESP32 GND            ----> HC-SR04 GND
+ * 
+ * Dynamo Servo:
+ *    ESP32 GPIO 15 (D15) ----> Servo Signal (oranye/kuning)
+ *    ESP32 5V             ----> Servo VCC (merah)
+ *    ESP32 GND            ----> Servo GND (coklat/hitam)
+ */
+// ============================================================
+
 // WiFi Event Handler untuk monitoring koneksi
 void WiFiEvent(WiFiEvent_t event) {
   switch(event) {
@@ -18,57 +64,6 @@ void WiFiEvent(WiFiEvent_t event) {
       break;
   }
 }
-
-// ============================================================
-// KONFIGURASI - Sesuaikan dengan lingkungan Anda
-// ============================================================
-
-// --- WiFi ---
-const char* ssid         = "NAMA_WIFI_ANDA";
-const char* password     = "PASSWORD_WIFI_ANDA";
-
-// --- MQTT ---
-const char* mqtt_server  = "IP_LAPTOP_ANDA"; // IP komputer/MQTT broker
-const int   mqtt_port    = 1883;
-const char* mqtt_topic   = "esp32/radar";
-const char* mqtt_client_id = "ESP32RadarClient";
-
-// --- Topik Status (Telemetry) ---
-const char* mqtt_topic_status  = "esp32/status";
-const char* mqtt_topic_cmd     = "esp32/cmd";
-
-// ============================================================
-// WIRING DIAGRAM - HC-SR04 ke ESP32
-// ============================================================
-/*
- * ESP32 Pinout (berdasarkan gambar wiring):
- * 
- * HC-SR04 Ultrasonic Sensor:
- *    ESP32 GPIO 5  (D1)  ----> HC-SR04 Trig
- *    ESP32 GPIO 17 (D2)  ----> HC-SR04 Echo
- *    ESP32 3V3/5V         ----> HC-SR04 VCC
- *    ESP32 GND            ----> HC-SR04 GND
- * 
- * Dynamo Servo:
- *    ESP32 GPIO 18        ----> Servo Signal (oranye/kuning)
- *    ESP32 5V             ----> Servo VCC (merah)
- *    ESP32 GND            ----> Servo GND (coklat/hitam)
- * 
- * Catatan: Jika servo bergerak lemah/berat, gunakan power supply
- *          eksternal 5V untuk servo (jangan hanya pakai 5V dari ESP32)
- */
-// ============================================================
-
-// --- PIN Hardware ---
-// HC-SR04 Ultrasonic Sensor connections
-const int PIN_TRIG    = 5;   // HC-SR04 Trigger -> ESP32 Pin D1 (GPIO 5)
-const int PIN_ECHO    = 17;  // HC-SR04 Echo -> ESP32 Pin D2 (GPIO 17)
-
-// Servo Motor (Dynamo Servo) connection
-const int PIN_SERVO   = 18;  // Servo Signal -> ESP32 GPIO 18
-
-// Built-in LED untuk indikasi koneksi (aktif HIGH)
-const int PIN_LED_BUILTIN = 2;
 
 // --- Konfigurasi Radar ---
 const int   sudutMin      = 0;
@@ -95,9 +90,6 @@ int direction    = 1;  // 1 = maju, -1 = mundur
 // FUNGSI UTILITY - Sensor Ultrasonic HC-SR04
 // ============================================================
 
-// HC-SR04: Membaca jarak dalam centimeter (2cm - 400cm)
-// - Trigger: kirim pulse 10µs HIGH
-// - Echo: baca durasi pulse HIGH (timeout 30ms)
 long hitungJarak() {
   digitalWrite(PIN_TRIG, LOW);
   delayMicroseconds(2);
@@ -113,7 +105,7 @@ long hitungJarak() {
 }
 
 // ============================================================
-// MANAJEMEN KONEKSI WiFi (RELIABLE & AUTO-RECONNECT)
+// MANAJEMEN KONEKSI WiFi
 // ============================================================
 
 bool connectWiFi() {
@@ -149,13 +141,11 @@ bool connectWiFi() {
   return true;
 }
 
-// Memonitor koneksi WiFi dan reconnect otomatis jika putus
 bool maintainWiFi() {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("[WiFi] Koneksi terputus! Mencoba reconnect...");
     digitalWrite(PIN_LED_BUILTIN, LOW);
     
-    // Reconnect dengan backoff strategy
     static int reconnectAttempts = 0;
     static unsigned long lastAttempt = 0;
     
@@ -164,7 +154,6 @@ bool maintainWiFi() {
       reconnectAttempts++;
       
       if (reconnectAttempts > 10) {
-        // Restart WiFi stack jika terlalu banyak gagal
         Serial.println("[WiFi] Restarting WiFi stack...");
         WiFi.disconnect(true);
         delay(1000);
@@ -183,7 +172,7 @@ bool maintainWiFi() {
 }
 
 // ============================================================
-// MANAJEMEN KONEKSI MQTT (RELIABLE & AUTO-RECONNECT)
+// MANAJEMEN KONEKSI MQTT
 // ============================================================
 
 bool connectMQTT() {
@@ -194,28 +183,34 @@ bool connectMQTT() {
 
   if (client.connect(mqtt_client_id)) {
     Serial.println("MQTT Terhubung!");
-
-    // Subscribe ke topic command untuk menerima perintah
     client.subscribe(mqtt_topic_cmd);
     Serial.print("Subscribe ke: ");
     Serial.println(mqtt_topic_cmd);
 
-    // Publikasikan status online
     client.publish(mqtt_topic_status, "{\"status\":\"online\",\"device\":\"esp32-radar\"}");
     return true;
   } else {
     Serial.print("MQTT Gagal, rc=");
     Serial.println(client.state());
+    // Tambahkan informasi state untuk debugging
+    switch(client.state()) {
+      case -4: Serial.println(" -> MQTT_CONNECTION_TIMEOUT"); break;
+      case -3: Serial.println(" -> MQTT_CONNECTION_LOST"); break;
+      case -2: Serial.println(" -> MQTT_CONNECT_FAILED"); break;
+      case -1: Serial.println(" -> MQTT_DISCONNECTED"); break;
+      case 1:  Serial.println(" -> MQTT_CONNECT_BAD_PROTOCOL"); break;
+      case 2:  Serial.println(" -> MQTT_CONNECT_BAD_CLIENT_ID"); break;
+      case 3:  Serial.println(" -> MQTT_CONNECT_UNAVAILABLE"); break;
+      case 4:  Serial.println(" -> MQTT_CONNECT_BAD_CREDENTIALS"); break;
+      case 5:  Serial.println(" -> MQTT_CONNECT_UNAUTHORIZED"); break;
+    }
     return false;
   }
 }
 
-// Memonitor dan reconnect MQTT jika putus
 void maintainMQTT() {
   if (!client.connected()) {
     Serial.println("[MQTT] Koneksi terputus! Mencoba reconnect...");
-
-    // Pastikan WiFi masih terhubung sebelum reconnect MQTT
     if (maintainWiFi()) {
       connectMQTT();
     }
@@ -224,7 +219,7 @@ void maintainMQTT() {
 }
 
 // ============================================================
-// CALLBACK MQTT - Menerima perintah dari broker
+// CALLBACK MQTT - Menerima perintah
 // ============================================================
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
@@ -238,18 +233,14 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println(message);
 
-  // Proses perintah sederhana
   if (String(topic) == mqtt_topic_cmd) {
     if (message == "stop") {
-      // Hentikan scanning
       direction = 0;
       Serial.println("[CMD] Radar dihentikan");
     } else if (message == "start") {
-      // Mulai scanning
       direction = 1;
       Serial.println("[CMD] Radar dimulai");
     } else if (message == "reset") {
-      // Reset posisi servo ke 0
       myServo.write(0);
       currentAngle = 0;
       Serial.println("[CMD] Servo di-reset ke posisi 0");
@@ -270,7 +261,7 @@ void setup() {
   // Inisialisasi pin HC-SR04
   pinMode(PIN_TRIG, OUTPUT);
   pinMode(PIN_ECHO, INPUT);
-  digitalWrite(PIN_TRIG, LOW); // Pastikan trigger LOW saat startup
+  digitalWrite(PIN_TRIG, LOW);
   
   // Inisialisasi LED indikator
   pinMode(PIN_LED_BUILTIN, OUTPUT);
@@ -284,7 +275,7 @@ void setup() {
   myServo.write(0);
   delay(500);
 
-  // Koneksi WiFi (dengan retry & timeout handling)
+  // Koneksi WiFi
   if (!connectWiFi()) {
     Serial.println("[WARNING] WiFi tidak terhubung, akan mencoba lagi di loop...");
   }
@@ -293,7 +284,6 @@ void setup() {
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(mqttCallback);
 
-  // Koneksi MQTT
   if (WiFi.status() == WL_CONNECTED) {
     connectMQTT();
   }
@@ -302,29 +292,21 @@ void setup() {
 }
 
 // ============================================================
-// LOOP UTAMA - Edge Computing Architecture
+// LOOP UTAMA
 // ============================================================
 
 void loop() {
-  // 1️ PASTIKAN KONEKSI TETAP HIDUP (Connection Maintenance)
   maintainWiFi();
   maintainMQTT();
 
-  // 2️ EDGE COMPUTING - Proses data di edge device
-  //    sebelum dikirim ke cloud/server
-
-  // Jika ada perintah untuk menghentikan scanning
   if (direction == 0) {
-    // Tetap maintain koneksi walau scanning berhenti
     delay(100);
     return;
   }
 
-  // --- Scan Radar (Edge Processing) ---
-  // Compute sudut berikutnya
+  // --- Scan Radar ---
   currentAngle += (sudutStep * direction);
 
-  // Balik arah jika mencapai batas
   if (currentAngle >= sudutMax) {
     currentAngle = sudutMax;
     direction = -1;
@@ -333,25 +315,17 @@ void loop() {
     direction = 1;
   }
 
-  // Gerakkan servo ke sudut yang dituju
   myServo.write(currentAngle);
   delay(servoDelay);
 
-  // Baca jarak dari sensor ultrasonik
   long jarak = hitungJarak();
 
-  // *** Edge Filtering ***
-  // Jika jarak -1 (error) atau di luar range (> 400cm), skip data
-  if (jarak > 0 && jarak <= 400) {
-    // Format payload JSON untuk data terstruktur
-    String payload = "{\"angle\":" + String(currentAngle) +
-                     ",\"distance\":" + String(jarak) +
-                     ",\"rssi\":" + String(WiFi.RSSI()) + "}";
+  // Edge Filtering
+  if (jarak > 0 && jarak <= 15) {
+    String payload = String(currentAngle) + "," + String(jarak);
 
-    // Publikasikan ke MQTT
     client.publish(mqtt_topic, payload.c_str());
 
-    // Debug serial
     Serial.print("Angle: ");
     Serial.print(currentAngle);
     Serial.print("°, Jarak: ");
@@ -359,12 +333,11 @@ void loop() {
     Serial.println(" cm");
   }
 
-  // 3️ PUBLIKASI STATUS PERIODIK (Telemetry)
+  // Publikasi status berkala
   unsigned long now = millis();
   if (now - lastStatusPublish >= statusInterval) {
     lastStatusPublish = now;
 
-    // Kirim status ke MQTT
     String statusPayload = "{\"status\":\"running\",\"wifi_rssi\":" +
                            String(WiFi.RSSI()) + ",\"uptime_ms\":" +
                            String(now) + "}";

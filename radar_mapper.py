@@ -13,7 +13,7 @@ MQTT_PORT = 1883
 MQTT_TOPIC = "esp32/radar"
 
 # --- INISIALISASI DATA ---
-max_distance = 200
+max_distance = 20
 data_points = {}
 current_angle = 0
 current_distance = 0
@@ -29,7 +29,7 @@ ax.set_title("RADAR", color='#00ff88', fontsize=16, pad=25,
              fontweight='bold', fontfamily='monospace')
 
 # --- KUSTOMISASI GRID & RADIUS ---
-ax.set_rgrids([50, 100, 150, 200], labels=['50cm', '100cm', '150cm', '200cm'],
+ax.set_rgrids([5, 10, 15, 20], labels=['5cm', '10cm', '15cm', '20cm'],
               angle=45, fontsize=8, color='#00aa44', alpha=0.6)
 ax.set_thetagrids(range(0, 360, 30), fontsize=7, color='#00aa44', alpha=0.5)
 ax.grid(color='#00aa44', linestyle='--', linewidth=0.4, alpha=0.3)
@@ -63,6 +63,13 @@ text_coord = fig.text(0.03, 0.07, "JARAK: 0cm", fontsize=9, color='#00aa55',
 
 legend = ax.legend(loc='upper right', fontsize=8, framealpha=0.15,
                    facecolor='#0a0a0a', edgecolor='#00aa44', labelcolor='#00ff88')
+
+# --- FUNGSI KEYBOARD ---
+def on_key_press(event):
+    global data_points
+    if event.key == 'escape':
+        data_points = {}
+        print("LAYAR DIBERSIHKAN (ESC)")
 
 # --- FUNGSI ---
 def hitung_luas_ruangan(points):
@@ -153,7 +160,7 @@ def on_message(client, userdata, msg):
         sudut = int(match.group(1))
         jarak = int(match.group(2))
         if jarak > max_distance or jarak <= 0:
-            jarak = max_distance
+            return
         current_angle = sudut
         current_distance = jarak
         update_data(sudut, jarak)
@@ -178,6 +185,9 @@ client.loop_start()
 # --- THREAD TIMEOUT ---
 timeout_thread = threading.Thread(target=check_timeout, daemon=True)
 timeout_thread.start()
+
+# --- EVENT KEYBOARD ---
+fig.canvas.mpl_connect('key_press_event', on_key_press)
 
 # --- ANIMASI ---
 ani = FuncAnimation(fig, animate, interval=30, cache_frame_data=False)
