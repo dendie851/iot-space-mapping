@@ -78,21 +78,34 @@ To allow Pygame and Matplotlib to draw GUI windows from inside the Linux-based D
   ![X-Server Step 4](ss/5-x-server-install-4.png)
   We complete the installation and save the configuration file so VcXsrv can be launched with these identical parameters in the future.
 
-### 3.3. MQTT Broker Verification
+### 3.3. MQTT Broker & Client Connection Verification
 - **Broker logs**
-  ![MQTT Broker Status](ss/6-mqtt-broker.png)
+  ![MQTT Broker Status](ss/7-mqtt-broker.png)
   This screenshot shows the console logs of the running Mosquitto MQTT broker container. The output confirms that the broker is listening on port `1883` and successfully accepts incoming TCP connections.
 
+- **ESP32 Connection to MQTT**
+  ![ESP32 Connection to MQTT](ss/6-connection-to-mqtt.png)
+  This shows that the ESP32 client is successfully connecting to the Mosquitto broker and starts publishing the radar angle and distance data.
+
 - **Broker communication testing**
-  ![Postman MQTT Test](ss/7-mqtt-broker-test-via-postmant.png)
+  ![Postman MQTT Test](ss/8-mqtt-broker-test-via-postmant.png)
   Using Postman's MQTT client, we connect directly to the broker to verify that messages are properly routed. The test confirms that simulated sensor payloads (such as publishing distance and angle data) are correctly received and formatted.
 
 ### 3.4. Final GUI Visualization Output
-![Radar Map Visual](ss/8-visualilasi-radar-mapping.png)
+![Radar Map Visual](ss/9-visualilasi-radar-mapping.jpg)
 This screenshot showcases the final running visualization from `radar_mapper.py`. The dark-themed polar radar dashboard displays:
 - A sweeping **radar line** in bright green representing the current servo angle.
 - Red **obstacle dots (Point Cloud)** showing mapped object locations.
 - **Data readouts** displaying the calculated space area in real time, the current sweep angle, and the detected distance.
+
+### 3.5. Hardware Setup & Real-time Integration Evidence
+- **Physical Microcontroller Setup**
+  ![Microcontroller Servo Ultrasonic](ss/11-microcontroller-servo-ultrasonik.jpg)
+  This image shows the actual physical wiring and setup of the ESP32 connected to the SG90 servo motor and the HC-SR04 ultrasonic sensor.
+
+- **Real-time Visualization and Microcontroller Alignment**
+  ![Radar Mapping and Microcontroller](ss/10-visualilasi-radar-mapping-and-micro-controller.jpg)
+  This highlights the complete end-to-end integration: the hardware sweeps physically while the Python GUI maps the obstacles on the screen in real-time.
 
 ---
 
