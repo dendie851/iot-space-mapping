@@ -7,9 +7,19 @@ A smart for object detection and obstacle-detection system utilizing an ESP32, a
 # Table of Contents
 - [1. The Story of Ultrasonic and Servo Integration](#1-the-story-of-ultrasonic-and-servo-integration)
 - [2. System Architecture](#2-system-architecture)
+  - [Architecture Explanation](#architecture-explanation)
 - [3. Setup and Installation Evidence](#3-setup-and-installation-evidence)
+  - [3.1. Docker Compose Deployment](#31-docker-compose-deployment)
+  - [3.2. X-Server (VcXsrv) Configuration](#32-x-server-vcxsrv-configuration)
+  - [3.3. MQTT Broker & Client Connection Verification](#33-mqtt-broker--client-connection-verification)
+  - [3.4. Final GUI Visualization Output](#34-final-gui-visualization-output)
+  - [3.5. Hardware Setup & Real-time Integration Evidence](#35-hardware-setup--real-time-integration-evidence)
 - [4. Wiring Diagram and Pins](#4-wiring-diagram-and-pins)
+  - [Hardware Pin Mapping](#hardware-pin-mapping)
 - [5. How to Run the Project](#5-how-to-run-the-project)
+  - [5.1. Start the X-Server](#51-start-the-x-server)
+  - [5.2. Run the Application with Docker Compose](#52-run-the-application-with-docker-compose)
+  - [5.3. Upload Code to ESP32](#53-upload-code-to-esp32)
 
 ---
 
