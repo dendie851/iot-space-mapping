@@ -107,6 +107,12 @@ This screenshot showcases the final running visualization from `radar_mapper.py`
   ![Radar Mapping and Microcontroller](ss/10-visualilasi-radar-mapping-and-micro-controller.jpg)
   This highlights the complete end-to-end integration: the hardware sweeps physically while the Python GUI maps the obstacles on the screen in real-time.
 
+- **Video Demonstration**
+  
+  [![Watch the Demo](https://img.youtube.com/vi/X0JNqRwhCGI/0.jpg)](https://www.youtube.com/shorts/X0JNqRwhCGI)
+  
+  *Click the image above to watch the project demonstration on YouTube Shorts.*
+
 ---
 
 ## 4. Wiring Diagram and Pins
