@@ -14,6 +14,7 @@ A smart for object detection and obstacle-detection system utilizing an ESP32, a
   - [3.3. MQTT Broker & Client Connection Verification](#33-mqtt-broker--client-connection-verification)
   - [3.4. Final GUI Visualization Output](#34-final-gui-visualization-output)
   - [3.5. Hardware Setup & Real-time Integration Evidence](#35-hardware-setup--real-time-integration-evidence)
+  - [3.6. Video Demonstration](#36-video-demonstration)
 - [4. Wiring Diagram and Pins](#4-wiring-diagram-and-pins)
   - [Hardware Pin Mapping](#hardware-pin-mapping)
 - [5. How to Run the Project](#5-how-to-run-the-project)
@@ -117,11 +118,10 @@ This screenshot showcases the final running visualization from `radar_mapper.py`
   ![Radar Mapping and Microcontroller](ss/10-visualilasi-radar-mapping-and-micro-controller.jpg)
   This highlights the complete end-to-end integration: the hardware sweeps physically while the Python GUI maps the obstacles on the screen in real-time.
 
-- **Video Demonstration**
-  
-  [![Watch the Demo](https://img.youtube.com/vi/X0JNqRwhCGI/0.jpg)](https://www.youtube.com/shorts/X0JNqRwhCGI)
-  
-  *Click the image above to watch the project demonstration on YouTube Shorts.*
+### 3.6. Video Demonstration
+[![Watch the Demo](https://img.youtube.com/vi/X0JNqRwhCGI/0.jpg)](https://www.youtube.com/shorts/X0JNqRwhCGI)
+
+*Click the image above to watch the project demonstration on YouTube Shorts.*
 
 ---
 
